@@ -1,5 +1,5 @@
 ﻿#=============================================================================
-# Copyright (c) 2019-2020, NVIDIA CORPORATION.
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ function(ConfigureTest CMAKE_TEST_NAME)
                         "$<BUILD_INTERFACE:${CUSPATIAL_SOURCE_DIR}/src>")
     set_target_properties(${CMAKE_TEST_NAME}
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<BUILD_INTERFACE:${CUSPATIAL_BINARY_DIR}/gtests>")
-    target_link_libraries(${CMAKE_TEST_NAME} cudf::cudftestutil cuspatial GTest::gtest_main GTest::gmock_main)
+    target_link_libraries(${CMAKE_TEST_NAME} cudf::gtest_main cudf::gmock_main cudf::cudftestutil cuspatial)
     add_test(NAME ${CMAKE_TEST_NAME} COMMAND ${CMAKE_TEST_NAME})
 endfunction(ConfigureTest)
 
@@ -36,7 +36,7 @@ endfunction(ConfigureTest)
 ###################################################################################################
 
 ConfigureTest(CARTESIAN_PRODUCT_GROUP_INDEX_ITERATOR_TEST
-    spatial/cartesian_product_group_index_iterator_test.cpp)
+    spatial/cartesian_product_group_index_iterator_test.cu)
 
  ConfigureTest(CUBIC_SPLINE_TEST
     interpolate/cubic_spline_test.cpp)

@@ -41,8 +41,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 option(USE_NVTX "Build with NVTX support" ON)
 option(BUILD_TESTS "Configure CMake to build tests" OFF)
 option(BUILD_BENCHMARKS "Configure CMake to build (google) benchmarks" OFF)
-option(JITIFY_USE_CACHE "Use a file cache for JIT compiled kernels" ON)
-option(CUDF_USE_ARROW_STATIC "Build and statically link Arrow libraries" OFF)
 option(PER_THREAD_DEFAULT_STREAM "Build with per-thread default stream" OFF)
 option(DISABLE_DEPRECATION_WARNING "Disable warnings generated from deprecated declarations." OFF)
 # Option to enable line info in CUDA device compilation to allow introspection when profiling / memchecking
@@ -53,9 +51,7 @@ option(CUDA_STATIC_RUNTIME "Statically link the CUDA runtime" OFF)
 message(STATUS "CUSPATIAL: Build with NVTX support: ${USE_NVTX}")
 message(STATUS "CUSPATIAL: Configure CMake to build tests: ${BUILD_TESTS}")
 message(STATUS "CUSPATIAL: Configure CMake to build (google) benchmarks: ${BUILD_BENCHMARKS}")
-message(STATUS "CUSPATIAL: Use a file cache for JIT compiled kernels: ${JITIFY_USE_CACHE}")
 message(STATUS "CUSPATIAL: Build with per-thread default stream: ${PER_THREAD_DEFAULT_STREAM}")
-message(STATUS "CUSPATIAL: Build and statically link Arrow libraries: ${CUDF_USE_ARROW_STATIC}")
 message(STATUS "CUSPATIAL: Disable warnings generated from deprecated declarations: ${DISABLE_DEPRECATION_WARNING}")
 message(STATUS "CUSPATIAL: Enable the -lineinfo option for nvcc (useful for cuda-memcheck / profiler: ${CUDA_ENABLE_LINEINFO}")
 message(STATUS "CUSPATIAL: Statically link the CUDA runtime: ${CUDA_STATIC_RUNTIME}")
@@ -115,10 +111,6 @@ include(cmake/Modules/ConfigureCUDA.cmake)
 find_package(GDAL REQUIRED)
 # add third party dependencies using CPM
 include(cmake/thirdparty/CUSPATIAL_GetCPM.cmake)
-# find or add RMM
-include(cmake/thirdparty/CUSPATIAL_GetRMM.cmake)
-# find or add GTest
-include(cmake/thirdparty/CUSPATIAL_GetGTest.cmake)
 # find or add cuDF
 include(cmake/thirdparty/CUSPATIAL_GetCUDF.cmake)
 
@@ -163,7 +155,7 @@ target_compile_options(cuspatial
 
 target_compile_definitions(cuspatial
             PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:${CUSPATIAL_CXX_DEFINITIONS}>"
-                   "$<$<COMPILE_LANGUAGE:CUDA>:${CUSPATIAL_CUDA_DEFINITIONS}>"
+                   "$<BUILD_INTERFACE:$<$<COMPILE_LANGUAGE:CUDA>:${CUSPATIAL_CUDA_DEFINITIONS}>>"
 )
 
 # Disable Jitify log printing. See https://github.com/NVIDIA/jitify/issues/79
@@ -204,38 +196,6 @@ target_link_libraries(cuspatial PUBLIC GDAL::GDAL cudf::cudf CUDA::cusparse)
 add_library(cuspatial::cuspatial ALIAS cuspatial)
 
 ###################################################################################################
-# - tests and benchmarks --------------------------------------------------------------------------
-###################################################################################################
-# if (CUSPATIAL_BUILD_TESTS OR CUSPATIAL_BUILD_BENCHMARKS)
-#     # Find or install GoogleTest
-#     CPMFindPackage(NAME GTest
-#         VERSION         1.10.0
-#         GIT_REPOSITORY  https://github.com/google/googletest.git
-#         GIT_TAG         release-1.10.0
-#         GIT_SHALLOW     TRUE
-#         OPTIONS         "INSTALL_GTEST OFF"
-#         # googletest >= 1.10.0 provides a cmake config file -- use it if it exists
-#         FIND_PACKAGE_ARGUMENTS "CONFIG")
-#     # Add GTest aliases if they don't already exist.
-#     # Assumes if GTest::gtest doesn't exist, the others don't either.
-#     # TODO: Is this always a valid assumption?
-#     if(NOT TARGET GTest::gtest)
-#         add_library(GTest::gtest ALIAS gtest)
-#         add_library(GTest::gmock ALIAS gmock)
-#         add_library(GTest::gtest_main ALIAS gtest_main)
-#         add_library(GTest::gmock_main ALIAS gmock_main)
-#     endif()
-#     if(GTest_ADDED)
-#         install(TARGETS gmock
-#                         gtest
-#                         gmock_main
-#                         gtest_main
-#             DESTINATION lib
-#             EXPORT cuspatial-targets)
-#     endif()
-# endif()
-
-###################################################################################################
 # - add tests -------------------------------------------------------------------------------------
 
 if(CUSPATIAL_BUILD_TESTS)
@@ -248,20 +208,6 @@ endif()
 # - add benchmarks --------------------------------------------------------------------------------
 
 if(CUSPATIAL_BUILD_BENCHMARKS)
-    # Find or install GoogleBench
-    CPMFindPackage(NAME benchmark
-        VERSION         1.5.2
-        GIT_REPOSITORY  https://github.com/google/benchmark.git
-        GIT_TAG         v1.5.2
-        GIT_SHALLOW     TRUE
-        OPTIONS         "BENCHMARK_ENABLE_TESTING OFF"
-                        "BENCHMARK_ENABLE_INSTALL OFF")
-    if(benchmark_ADDED)
-        install(TARGETS benchmark
-                        benchmark_main
-            DESTINATION lib
-            EXPORT cuspatial-targets)
-    endif()
     add_subdirectory(benchmarks)
 endif()
 
