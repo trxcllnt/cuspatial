@@ -36,7 +36,8 @@ namespace cuspatial {
  * in 2D space.
  * @note `max_depth` should be less than 16, since Morton codes are represented as `uint32_t`.
  *
- * @param quadtree: cudf table representing a quadtree (key, level, is_quad, length, offset).
+ * @param quadtree: cudf table representing a quadtree (key, level, is_internal_node, length,
+ * offset).
  * @param bbox: cudf table of bounding boxes as four columns (x_min, y_min, x_max, y_max).
  * @param x_min The lower-left x-coordinate of the area of interest bounding box.
  * @param x_max The upper-right x-coordinate of the area of interest bounding box.
@@ -83,7 +84,8 @@ std::unique_ptr<cudf::table> join_quadtree_and_bounding_boxes(
  *
  * @param poly_quad_pairs cudf table of (polygon, quadrant) index pairs returned by
  * `cuspatial::join_quadtree_and_bounding_boxes`
- * @param quadtree cudf table representing a quadtree (key, level, is_quad, length, offset).
+ * @param quadtree cudf table representing a quadtree (key, level, is_internal_node, length,
+ * offset).
  * @param point_indices Sorted point indices returned by `cuspatial::quadtree_on_points`
  * @param point_x x-coordinates of points to test
  * @param point_y y-coordinates of points to test
@@ -130,7 +132,8 @@ std::unique_ptr<cudf::table> quadtree_point_in_polygon(
  *
  * @param linestring_quad_pairs cudf table of (linestring, quadrant) index pairs returned by
  * `cuspatial::join_quadtree_and_bounding_boxes`
- * @param quadtree cudf table representing a quadtree (key, level, is_quad, length, offset).
+ * @param quadtree cudf table representing a quadtree (key, level, is_internal_node, length,
+ * offset).
  * @param point_indices Sorted point indices returned by `cuspatial::quadtree_on_points`
  * @param point_x x-coordinates of points to test
  * @param point_y y-coordinates of points to test
